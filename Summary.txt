@@ -1,0 +1,75 @@
+2024-7-24
+
+1，网页的 viewport的 meta 标签，用于控制界面显示大小（适配移动端显示）
+eg:
+meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2">
+
+
+name="viewport": 这里的 name 属性指定了这个 meta 标签的名称，即视口设置。
+
+content="width=device-width, initial-scale=1.0, maximum-scale=2":
+
+width=device-width: 这个部分告诉浏览器，视口的宽度应该等于设备的宽度。这使得网页可以根据设备宽度进行自适应布局。
+
+initial-scale=1.0: 初始缩放比例为 1.0。这意味着当页面加载时，页面的缩放比例被设置为 100%，即不进行缩放。这有助于确保页面在不同设备上的显示效果一致。
+
+maximum-scale=2: 最大缩放比例为 2.0。这限制了用户在浏览器中手动缩放页面的能力，确保页面不会被过度放大。
+
+以上 <meta> 标签的作用是确保网页在移动设备上能够良好地适应屏幕大小，
+并控制页面的初始缩放比例及最大缩放比例，
+
+
+2，移动端点击事件：@touchstart @touchmove @touchend
+
+对应电脑端的 @mousedown @mousemove @mouseup
+
+创建拖拽检测变量isDragged，在@touchstart中令isDragged=true
+touchmove中if(isDragged==true)执行相应逻辑
+touchend中令isDragged=false
+
+eg：
+    // 自机移动
+    const isDragging = ref(false)
+    const mouseX = ref(0);
+    const mouseY = ref(0);
+
+    function onTouchStart(event: TouchEvent) {
+        if (gameConfig.value.isGameStart && !gameConfig.value.isGameover) {
+            isDragging.value = true;
+            mouseX.value = event.touches[0].clientX;
+            mouseY.value = event.touches[0].clientY;
+            playerPlane.value?.changePositionByCenter(mouseX.value, mouseY.value)
+            event.preventDefault()
+        }
+    };
+    function onTouchMove(event: TouchEvent) {
+        if (gameConfig.value.isGameStart && !gameConfig.value.isGameover) {
+            if (isDragging.value) {
+                mouseX.value = event.touches[0].clientX;
+                mouseY.value = event.touches[0].clientY;
+                playerPlane.value?.changePositionByCenter(mouseX.value, mouseY.value)
+            }
+        }
+    };
+    function onTouchEnd() {
+        isDragging.value = false;
+    }
+
+2024-7-31：
+1，在setInterval中频繁打印代理对象时值与真实值不符
+
+问题场景：
+使用setInterval实时修改代理对象的值
+在控制台循环打印proxy对象，对象的值已产生变化，但控制台中展开显示的target值错误，
+且对象Proxy（Object）旁提示“在首次展开时评估此值，此后它可能已更改”。
+
+
+问题分析：
+使用JSON.stringfy方法，以字符串形式循环打印对象，发现对象的值正确变化。
+直接打印对象内部属性而非对象本身，发现值产生变化。
+通过vue插件可看到代理对象的值在实时变化。
+
+结论：
+代理对象的值实际已发生改变，但控制台打印存在问题。
+**展开显示的target为“代理对象‘在点击展开时’的状态”，并非打印时的状态，因此与预期值不符
+
